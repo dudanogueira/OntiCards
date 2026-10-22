@@ -54,10 +54,33 @@ schema = {
     }
 }
 
+# Weaviate (>= 1.38) 通过 X-Weaviate-Client-Integration 请求头统计来自 OntiCards 的流量，格式为 {name}/{version}。
+# 仓库中暂无可靠的应用版本来源（config.CURRENT_VERSION 与发布标签不一致），因此版本上报为 unknown。
+INTEGRATION_HEADER_VALUE = "onticards/unknown"
+
+
+def _register_integration(client: WeaviateClient) -> None:
+    """尽力而为：为 client 的 REST 与 gRPC 请求附加集成标识请求头，失败时静默跳过，不影响业务。"""
+    try:
+        from pydantic import Field
+        from weaviate.connect.integrations import _IntegrationConfig  # 私有 API，可能随客户端版本变化
+
+        class _OntiCardsIntegration(_IntegrationConfig):
+            integration: str = Field(
+                default=INTEGRATION_HEADER_VALUE,
+                serialization_alias="X-Weaviate-Client-Integration",
+            )
+
+        client.integrations.configure(_OntiCardsIntegration())
+    except Exception:
+        pass
+
+
 # 上下文管理器封装向量库连接
 @contextmanager
 def weaviate_client():
     client = WeaviateClient(connection_params=ConnectionParams.from_url(url=WEAVIATE_URL, grpc_port=GRPC_PORT))
+    _register_integration(client)
     client.connect()
     try:
         yield client
