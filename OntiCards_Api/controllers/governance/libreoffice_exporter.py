@@ -621,6 +621,7 @@ def _build_docx_with_python(report: GovernanceReport,
         row_cells[7].text = f"{r.failed_count or 0}/{r.total_count or 0}"
 
     for row in table.rows:
+        row._tr.get_or_add_trPr().append(OxmlElement('w:cantSplit'))
         for cell, width in zip(row.cells, widths):
             cell.width = width
             for paragraph in cell.paragraphs:
