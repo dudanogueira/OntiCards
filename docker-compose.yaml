@@ -22,9 +22,10 @@ services:
     networks:
       - onticards
 
-  # Version 1.36.x matches the repository's weaviate-client==4.20.4 dependency.
+  # Version 1.39.x works with the repository's weaviate-client==4.20.4 dependency.
+  # Existing data must be upgraded one minor version at a time (1.36 -> 1.37 -> 1.38 -> 1.39).
   onticards-weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.36.0
+    image: cr.weaviate.io/semitechnologies/weaviate:1.39.13
     command:
       - --host
       - 0.0.0.0
